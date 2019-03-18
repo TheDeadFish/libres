@@ -28,7 +28,7 @@ void rsrc_getNames_(xarray<WCHAR*>& nameLst, byte* data, u32 irdIdx)
 			
 			// insert string into list
 			cstrW str = {irds->NameString, irds->Length};
-			for(WCHAR* s : nameLst) { if(str.cmp(s)) goto FOUND; }
+			for(WCHAR* s : nameLst) { if(!str.cmp(s)) goto FOUND; }
 			nameLst.push_back(str.xdup()); FOUND:;
 		}
 	}
@@ -45,6 +45,7 @@ void asm_getStr(FILE* fp, WCHAR* str)
 {
 	char symName[64];
 	sprintf(symName, "_resn_%S", str);
+	printf("libres res: %s\n", symName);
 	
 	// print main body
 	fprintf(fp, ".globl %s; .section .rdata$%s,\"r\";"
@@ -73,8 +74,8 @@ int main(int argc, char** argv)
 		
 	// get temp filename
 	char tmpObj[MAX_PATH];
-	GetTempFileNameA(".", "lro", 0, tmpObj);
-	printf("tmp file: %s\n", tmpObj);
+	GetTempFileNameA(".", "res", 0, tmpObj);
+	printf("libres asm: %s\n", tmpObj);
 	
 	// generate output
 	FILE* fp = _wpopen(widen(
