@@ -7,7 +7,7 @@ struct FileRead : xArray<byte>
 	
 	bool offset(DWORD& dst, DWORD ofs, DWORD len1, DWORD len2=1) {
 		return  __builtin_mul_overflow(len1, len2, &len1) ||
-		__builtin_add_overflow(len1, ofs, &dst) || dst >= size; }
+		__builtin_add_overflow(len1, ofs, &dst) || dst >= len; }
 	bool check(DWORD ofs, DWORD len1, DWORD len2=1) {
 		return offset(ofs, ofs, len1, len2); }
 	
