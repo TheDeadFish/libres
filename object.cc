@@ -57,10 +57,10 @@ cstr CoffObjLd::strGet(void* str_)
 	return cstr_len(strTab+RI(str,4));
 }
 
-int CoffObjLd::findSect(cch* name)
+int CoffObjLd::findSect(cch* find)
 {
 	for(int i = 0; i < sections.len; i++) {
 		cstr name = sections[i].name(*this);
-		if(!name.cmp(name)) return i; }
+		if(!name.cmp(find)) return i; }
 	return -1;
 }
