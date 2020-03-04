@@ -3,8 +3,7 @@ struct CoffObjWr;
 
 struct CoffObjLd
 {
-	int load(const char* name);
-	enum { ERROR_NONE, ERROR_LOAD, ERROR_EOF };
+	bool load(byte* data, size_t size);
 	
 	struct ObjRelocs
 	{
@@ -63,7 +62,7 @@ struct CoffObjLd
 	
 	
 	
-	xArray<byte> fileData;
+	xarray<byte> fileData;
 	
 	IMAGE_FILE_HEADER& ifh() { return 
 		*(IMAGE_FILE_HEADER*)fileData.data; }

@@ -1,10 +1,8 @@
 #include <stdshit.h>
 #include "object.h"
 
-struct FileRead : xArray<byte>
+struct FileRead : xarray<byte>
 {
-	bool load(cch* name) { xArray::init(loadFile(name)); return data; }
-	
 	bool offset(DWORD& dst, DWORD ofs, DWORD len1, DWORD len2=1) {
 		return  __builtin_mul_overflow(len1, len2, &len1) ||
 		__builtin_add_overflow(len1, ofs, &dst) || dst >= len; }
@@ -14,26 +12,25 @@ struct FileRead : xArray<byte>
 	Void get(DWORD offset) { return Void(data, offset); }
 };
 
-int CoffObjLd::load(const char* name)
+bool CoffObjLd::load(byte* data, size_t size)
 {
-	// load the section
-	FileRead rd; 
-	if(!rd.load(name)) return ERROR_LOAD;
+	fileData = {data, size};
+	FileRead rd = {{data, size}};
 		
 	// check header & section table
 	if(rd.check(0, sizeof(IMAGE_FILE_HEADER))) 
-		return ERROR_EOF;
+		return false;
 	IMAGE_FILE_HEADER* objHeadr = rd.get(0);
 	DWORD nSects = objHeadr->NumberOfSections;
 	if(rd.check(sizeof(IMAGE_FILE_HEADER), nSects, 
-		sizeof(IMAGE_SECTION_HEADER))) return ERROR_EOF;
+		sizeof(IMAGE_SECTION_HEADER))) return false;
 		
 	// check symbol table & string table
 	DWORD nSymbols = objHeadr->NumberOfSymbols;
 	DWORD iSymbols = objHeadr->PointerToSymbolTable;
 	symbols.init(rd.get(iSymbols), nSymbols);
 	DWORD iStrTab; if(rd.offset(iStrTab, iSymbols, 
-		nSymbols, sizeof(ObjSymbol))) return ERROR_EOF;
+		nSymbols, sizeof(ObjSymbol))) return false;
 	strTab = rd.get(iStrTab);
 	
 	// load sections
@@ -46,8 +43,7 @@ int CoffObjLd::load(const char* name)
 			RI(Name) = 0; RI(Name,4) = i; }
 	}
 	
-	fileData.init(rd.release());
-	return ERROR_NONE;
+	return true;
 }	
 	
 cstr CoffObjLd::strGet(void* str_)
@@ -77,12 +73,7 @@ int CoffObj::symbol_create(cch* name, int extra)
 {
 	// create 
 	int index = symbols.getCount()+1;
-	
-	printf("%X, %X, %X\n", symbols.dataPtr, symbols.dataSize, symbols.allocSize);
-	
 	auto* symb = symbols.xNalloc(extra+1);
-	printf("%X\n", symb);
-	
 	add_string(&symb->Name1, name);
 	return index;
 }

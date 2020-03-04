@@ -1,6 +1,6 @@
 #include <stdshit.h>
+#include "arFile.h"
 #include "object.h"
-
 
 const char progName[] = "test";
 
@@ -41,26 +41,14 @@ xarray<WCHAR*> rsrc_getNames(byte* data)
 	return nameLst;
 }
 
-void asm_getStr(FILE* fp, WCHAR* str)
-{
-	char symName[64];
-	sprintf(symName, "_resn_%S", str);
-	printf("libres res: %s\n", symName);
-	
-	// print main body
-	fprintf(fp, ".globl %s; .section .rdata$%s,\"r\";"
-		".align 2; %s: .word ", symName, symName, symName);
-
-	// output strings
-	do { fprintf(fp, "%d%c", *str, 
-		*str ? ',' : '\n'); }while(*str++);
-}
-
-void add_string(CoffObj& obj, cchw* str)
+void add_string(CoffObj& obj, cchw* str, 
+	ArFile::FileInfo* fi)
 {
 	// get section name
 	xstr sn = Xstrfmt(".rdata$%sresn_%S", 
 		obj.x64() ? "" : "_", str);
+	printf("libres res: %s\n", sn+7);
+	if(fi) fi->symb.push_back(xstrdup(sn+7));
 
 	// create section
 	int iSect = obj.sect_create(sn);
@@ -73,6 +61,30 @@ void add_string(CoffObj& obj, cchw* str)
 	obj.symbol(iSymb).StorageClass = 2;
 }
 
+
+
+
+
+bool do_object(CoffObj& obj, xarray<byte> file,
+	ArFile::FileInfo* fi)
+{
+	// open object file
+	CoffObjLd co;
+	if(!co.load(file.data, file.len))
+		fatal_error("resource object bad");
+		
+	// get the list of names
+	int iRsrc = co.findSect(".rsrc");
+	if(iRsrc < 0) return false;
+	auto strLst = rsrc_getNames(co.sectData(iRsrc));	
+	
+	// add the strings
+	obj.load(co);
+	for(WCHAR* str : strLst) 
+		add_string(obj, str, fi);
+	return true;
+}
+
 int main(int argc, char** argv)
 {
 	if(argc != 3) {
@@ -80,21 +92,34 @@ int main(int argc, char** argv)
 		printf("Deadfish shitware 2019\n"); return 1; }
 	cch* resObj = argv[2];
 	cch* outObj = argv[1];
-
-	// get list of resources
-	CoffObjLd co;
-	if(co.load(resObj)) {
-		fatal_error("failed to load resource object"); }
-		
-	int iRsrc = co.findSect(".rsrc");
-	if(iRsrc < 0) fatal_error("no resource section");
-	auto strLst = rsrc_getNames(co.sectData(iRsrc));
 	
-	CoffObj obj; obj.load(co);
-	for(WCHAR* str : strLst) 
-		add_string(obj, str);
-	if(obj.save(outObj))
-		fatal_error("failed to save resource object"); 
+	auto file = loadFile(resObj);
+	if(!file) fatal_error("failed to load input file");
+	if(ArFile::chk(file.data, file.len))
+	{
+		ArFile ar;
+		if(!ar.load(file.data, file.len))
+			fatal_error("library file bad");
+		
+		for(auto& fi : ar) {
+			CoffObj obj;
+			if(do_object(obj, fi.data, &fi)) {
+				auto tmp = obj.save();
+				fi.data.free(); fi.data.init(tmp);
+			}
+		}
+		
+		if(ar.save(outObj))
+			fatal_error("failed to save library"); 
+
+	} else {
+
+		CoffObj obj;
+		if(!do_object(obj, file, 0))
+			fatal_error("no resource section");
+		if(obj.save(outObj))
+			fatal_error("failed to save resource object"); 			
+	}
 	
 	return 0;
 }
