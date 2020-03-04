@@ -55,6 +55,10 @@ void add_string(CoffObj& obj, cchw* str,
 	obj.sect(iSect).Characteristics = 0x40300040;
 	obj.sect(iSect).data.init((byte*)str, wcslen(str)*2+2);
 	
+	// check for existing symbol
+	int prevSymb = obj.symbol_find(sn+7);
+	if(prevSymb) fatal_error("duplicate resource symbol");
+	
 	// create symbol
 	int iSymb = obj.symbol_create(sn+7, 0);
 	obj.symbol(iSymb).Section = iSect;
@@ -80,7 +84,7 @@ bool do_object(CoffObj& obj, xarray<byte> file,
 	
 	// add the strings
 	obj.load(co);
-	for(WCHAR* str : strLst) 
+	for(WCHAR* str : strLst)
 		add_string(obj, str, fi);
 	return true;
 }

@@ -45,12 +45,20 @@ bool CoffObjLd::load(byte* data, size_t size)
 	
 	return true;
 }	
+
+
+static _thiscall
+cstr strGet(char* strTab, void* str_) {
+	char* str = (char*)str_;
+	if(RI(str)) return {str, strnlen(str, 8)};
+	return cstr_len(strTab+RI(str,4));	
+}
+
+
 	
 cstr CoffObjLd::strGet(void* str_)
 {
-	char* str = (char*)str_;
-	if(RI(str)) return {str, strnlen(str, 8)};
-	return cstr_len(strTab+RI(str,4));
+	return ::strGet(strTab, str_);
 }
 
 int CoffObjLd::findSect(cch* find)
@@ -214,4 +222,20 @@ xarray<byte> CoffObj::save()
 	byte* data = malloc(wr.init(*this));
 	if((wr.wrPos = data)) wr.save(*this);
 	return {data, wr.wrPos};
+}
+
+cstr CoffObj::strGet(void* str_)
+{
+	return ::strGet(strTab, str_);
+}
+
+int CoffObj::symbol_find(cch* name)
+{
+	FOR_FI(symbols, symb, i,
+		cstr str = strGet(&symb.Name1);
+		if(!str.cmp(name)) return i+1;
+		i += symb.NumberOfAuxSymbols;
+	);
+
+	return 0;
 }

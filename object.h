@@ -98,6 +98,7 @@ struct CoffObj
 	cch* symbol_name(int i);
 	int symbol_create(cch* name, int extra);
 	auto& symbol(int i) { return symbols[i-1]; }
+	int symbol_find(cch* name);
 	
 	bool x64() { return Machine == 0x8664; }
 	
@@ -108,4 +109,5 @@ struct CoffObj
 	int add_string(cch* name);
 	void add_string(DWORD*, cch* name);
 	void save(CoffObjWr& wr);
+	cstr strGet(void* str);
 };
