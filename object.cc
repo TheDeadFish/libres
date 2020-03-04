@@ -64,3 +64,163 @@ int CoffObjLd::findSect(cch* find)
 		if(!name.cmp(find)) return i; }
 	return -1;
 }
+
+
+int CoffObj::sect_create(cch* name)
+{
+	auto& sect = sections.xnxcalloc();
+	add_string(&sect.Name1, name);
+	return sections.len;
+}
+
+int CoffObj::symbol_create(cch* name, int extra)
+{
+	// create 
+	int index = symbols.getCount()+1;
+	
+	printf("%X, %X, %X\n", symbols.dataPtr, symbols.dataSize, symbols.allocSize);
+	
+	auto* symb = symbols.xNalloc(extra+1);
+	printf("%X\n", symb);
+	
+	add_string(&symb->Name1, name);
+	return index;
+}
+
+void CoffObj::add_string(DWORD* dst, cch* name)
+{
+	if(strlen(name) <= 8) {
+		strncpy((char*)dst, name, 8);
+	} else { dst[0] = 0;
+		dst[1] = add_string(name); }
+}
+
+int CoffObj::add_string(cch* name)
+{
+	int index = strTab.getCount();
+	strTab.strcat2(name);
+	RI(strTab.dataPtr) = strTab.dataSize;
+	return index;
+}
+
+
+void CoffObj::load(CoffObjLd& obj)
+{
+	Machine = obj.ifh().Machine;
+	Characteristics = obj.ifh().Characteristics;
+	TimeDateStamp = obj.ifh().TimeDateStamp;
+
+	for(auto& ss : obj.sections) {
+		auto& ds = sections.xnxalloc();
+		RQ(&ds.Name1) = RQ(ss.Name);
+		ds.data = ss.data(obj);
+		ds.relocs = ss.relocs(obj);
+		ds.Characteristics = ss.Characteristics;
+	}
+
+	symbols.xcopy(obj.symbols.data, obj.symbols.len);
+	strTab.xcopy(obj.strTab, RI(obj.strTab));
+}
+
+struct CoffObjWr
+{
+	FILE* fp; byte *wrPos;
+	DWORD dataPos, relocPos, symbPos;
+
+	DWORD init(CoffObj& obj);
+	void save(CoffObj& obj);
+	void write(const void* data, int size);
+};
+
+DWORD CoffObjWr::init(CoffObj& obj)
+{
+	ZINIT;
+
+	// calculate total size
+	int size = sizeof(IMAGE_FILE_HEADER) +
+		sizeof(IMAGE_SECTION_HEADER) * obj.sections.len;
+	dataPos = size;
+	for(auto& sect : obj.sections) size += sect.data.len;
+	relocPos = size = ALIGN4(size);
+	for(auto& sect : obj.sections) size += sect.relocs.dataSize();
+	symbPos = size = ALIGN4(size);
+	return size + obj.symbols.dataSize + obj.strTab.dataSize;
+}
+
+void CoffObjWr::write(const void* data, int size)
+{
+	if(fp) { if(!ferror(fp)) fwrite(data, size, 1, fp);
+	} else { memcpy(wrPos, data, size); wrPos += size; }
+}
+
+void CoffObjWr::save(CoffObj& obj)
+{
+	// write header
+	IMAGE_FILE_HEADER ifh = {obj.Machine, obj.sections.len, obj.TimeDateStamp,
+		symbPos, obj.symbols.getCount(), 0, obj.Characteristics};
+	write(&ifh, sizeof(ifh));
+	
+	// write sections
+	for(auto& sect : obj.sections) {
+		IMAGE_SECTION_HEADER ish = {};
+		ish.Characteristics = sect.Characteristics;
+
+		// write the name
+		if(sect.Name1) RQ(ish.Name) = RQ(&sect.Name1);
+		else { ish.Name[0] = '/';
+			itoa(sect.Name2, (char*)ish.Name+1, 10); }
+				
+		// data pointer & size
+		if(sect.data.len) {
+			ish.SizeOfRawData = sect.data.len;
+			ish.PointerToRawData = dataPos;
+			dataPos += sect.data.len;
+		}
+		
+		// relocs pointer & size
+		if(sect.relocs.len) {
+			ish.NumberOfRelocations = sect.relocs.len;
+			ish.PointerToRelocations = relocPos;
+			relocPos += sect.relocs.dataSize();
+		}
+
+		write(&ish, sizeof(ish)); 
+	}
+	
+	// write section data
+	for(auto& sect : obj.sections) {
+		size_t size = sect.data.len;
+		write(sect.data.data, size);
+	} write("\0\0", -dataPos & 3);
+	
+	
+	
+	// write section relocs
+	for(auto& sect : obj.sections) {
+		size_t size = sect.relocs.dataSize();
+		write(sect.relocs.data, size); 
+	} write("\0\0", -relocPos & 3);
+	
+	// write symbols
+	write(obj.symbols.data(), obj.symbols.dataSize); 
+	write(obj.strTab.data(), obj.strTab.dataSize);
+}
+
+
+int CoffObj::save(cch* file)
+{
+	CoffObjWr wr; wr.init(*this);
+	wr.fp = xfopen(file, "wb");
+	if(!wr.fp) return errno;
+	SCOPE_EXIT(fclose(wr.fp));
+	wr.save(*this);
+	return ferror(wr.fp);
+}
+
+xarray<byte> CoffObj::save()
+{
+	CoffObjWr wr;
+	byte* data = malloc(wr.init(*this));
+	if((wr.wrPos = data)) wr.save(*this);
+	return {data, wr.wrPos};
+}

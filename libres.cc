@@ -56,6 +56,23 @@ void asm_getStr(FILE* fp, WCHAR* str)
 		*str ? ',' : '\n'); }while(*str++);
 }
 
+void add_string(CoffObj& obj, cchw* str)
+{
+	// get section name
+	xstr sn = Xstrfmt(".rdata$%sresn_%S", 
+		obj.x64() ? "" : "_", str);
+
+	// create section
+	int iSect = obj.sect_create(sn);
+	obj.sect(iSect).Characteristics = 0x40300040;
+	obj.sect(iSect).data.init((byte*)str, wcslen(str)*2+2);
+	
+	// create symbol
+	int iSymb = obj.symbol_create(sn+7, 0);
+	obj.symbol(iSymb).Section = iSect;
+	obj.symbol(iSymb).StorageClass = 2;
+}
+
 int main(int argc, char** argv)
 {
 	if(argc != 3) {
@@ -68,25 +85,16 @@ int main(int argc, char** argv)
 	CoffObjLd co;
 	if(co.load(resObj)) {
 		fatal_error("failed to load resource object"); }
+		
 	int iRsrc = co.findSect(".rsrc");
 	if(iRsrc < 0) fatal_error("no resource section");
 	auto strLst = rsrc_getNames(co.sectData(iRsrc));
-		
-	// get temp filename
-	char tmpObj[MAX_PATH];
-	GetTempFileNameA(".", "res", 0, tmpObj);
-	printf("libres asm: %s\n", tmpObj);
 	
-	// generate output
-	FILE* fp = _wpopen(widen(
-		Xstrfmt("as -o %z", tmpObj)), L"w");
-	if(!fp) fatal_error("as failed");
-	for(WCHAR* str : strLst) asm_getStr(fp, str);
-	if(pclose(fp)) fatal_error("-- as failed --");
-
-	// generate final output
-	int x = system(Xstrfmt("ld %z %z -r -o %z",
-		tmpObj, resObj, outObj));
-	if(x) fatal_error("-- ld failed --");
-	remove(tmpObj); return 0;
+	CoffObj obj; obj.load(co);
+	for(WCHAR* str : strLst) 
+		add_string(obj, str);
+	if(obj.save(outObj))
+		fatal_error("failed to save resource object"); 
+	
+	return 0;
 }

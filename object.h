@@ -1,4 +1,5 @@
 #pragma once
+struct CoffObjWr;
 
 struct CoffObjLd
 {
@@ -15,8 +16,11 @@ struct CoffObjLd
 	
 	struct ObjSymbol
 	{
-		union { char* name; struct { 
-			DWORD Name1, Name2; }; };
+		//union { char* name; struct { 
+		//	DWORD Name1, Name2; }; };
+		
+		DWORD Name1, Name2;
+		
 		
 		DWORD Value;
 		WORD Section;
@@ -60,4 +64,49 @@ struct CoffObjLd
 	
 	
 	xArray<byte> fileData;
+	
+	IMAGE_FILE_HEADER& ifh() { return 
+		*(IMAGE_FILE_HEADER*)fileData.data; }
+};
+
+struct CoffObj
+{
+	// object info
+	WORD Machine;
+	WORD Characteristics;
+	DWORD TimeDateStamp;
+	
+	struct Section {
+		DWORD Name1, Name2;
+		DWORD Characteristics;
+		
+
+		xarray<byte> data;
+		xarray<CoffObjLd::ObjRelocs> relocs;
+	};
+	
+	// load/save api
+	void load(CoffObjLd& obj);
+	int save(cch* file);
+	xarray<byte> save();
+	
+	// section api
+	Section& sect(int i) { return sections[i-1]; }
+	cch* sect_name(int i);
+	int sect_create(cch* name);
+	
+	// symbol api
+	cch* symbol_name(int i);
+	int symbol_create(cch* name, int extra);
+	auto& symbol(int i) { return symbols[i-1]; }
+	
+	bool x64() { return Machine == 0x8664; }
+	
+//private:
+	xArray<Section> sections;
+	xVector<CoffObjLd::ObjSymbol> symbols;
+	xVector<char> strTab;	
+	int add_string(cch* name);
+	void add_string(DWORD*, cch* name);
+	void save(CoffObjWr& wr);
 };
