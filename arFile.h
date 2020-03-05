@@ -42,13 +42,15 @@ struct ArFile
 		
 	static cch* errStr(int ec);
 	
+	
 	// data access functions
 	FileInfo* find(cch* symb);
-	
-	
+	FileInfo* findFile(cch* name);
+
 	// create/edit
 	void addMove(FileInfo& that);
 	FileInfo& addNew(void);
+	FileInfo& replNew(cch* name);
 	
 private:
 	//int parseSymbol(FileRead& fp);

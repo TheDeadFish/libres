@@ -316,6 +316,14 @@ ArFile::FileInfo* ArFile::find(cch* symb)
 	return NULL;
 }
 
+ArFile::FileInfo* ArFile::findFile(cch* name)
+{
+	for(auto& file : files)
+	if(!stricmp(name, file.name))
+		return &file;
+	return NULL;
+}
+
 void ArFile::addMove(FileInfo& that)
 {
 	auto& file = files.xnxalloc();
@@ -327,6 +335,14 @@ ArFile::FileInfo& ArFile::addNew(void)
 	auto& file = files.xnxcalloc();
 	file.stat.mode = 100666;
 	return file;
+}
+
+ArFile::FileInfo& ArFile::replNew(cch* name)
+{
+	FileInfo* fi = findFile(name);
+	if(!fi) fi = &files.xnxalloc();
+	pRst(fi); fi->name.xcopy(name);
+	fi->stat.mode = 100666; return *fi;
 }
 
 bool ArFile::chk(byte* data, u32 size)
