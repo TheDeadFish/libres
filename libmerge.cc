@@ -85,8 +85,6 @@ int main(int argc, char** argv)
 		}
 	}
 	
-	printf("hello\n");
-	
 	// save the library file
 	if(arOut.save(outFile))
 		fatal_error("failed to write library: %s\n", outFile);
