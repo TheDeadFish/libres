@@ -340,7 +340,7 @@ ArFile::FileInfo& ArFile::addNew(void)
 ArFile::FileInfo& ArFile::replNew(cch* name)
 {
 	FileInfo* fi = findFile(name);
-	if(!fi) fi = &files.xnxalloc();
+	if(!fi) fi = &files.xnxcalloc();
 	pRst(fi); fi->name.xcopy(name);
 	fi->stat.mode = 100666; return *fi;
 }
