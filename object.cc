@@ -1,6 +1,21 @@
 #include <stdshit.h>
 #include "object.h"
 
+cstr CoffObjLd::sect_getName(
+	IMAGE_SECTION_HEADER* ish, char* strTab)
+{
+	char* name = (char*)ish->Name;
+	if(*name != '/') return cstr_len(name,8);
+	return strTab+atoi(name+1);
+}
+
+cstr CoffObjLd::ObjSymbol::name(char* strTab)
+{
+	char* str = (char*)&Name1;
+	if(RI(str)) return cstr_len(str, 8);
+	return cstr_len(strTab+RI(str,4));	
+}
+
 struct FileRead : xarray<byte>
 {
 	bool offset(DWORD& dst, DWORD ofs, DWORD len1, DWORD len2=1) {
@@ -45,21 +60,6 @@ bool CoffObjLd::load(byte* data, size_t size)
 	
 	return true;
 }	
-
-
-static _thiscall
-cstr strGet(char* strTab, void* str_) {
-	char* str = (char*)str_;
-	if(RI(str)) return {str, strnlen(str, 8)};
-	return cstr_len(strTab+RI(str,4));	
-}
-
-
-	
-cstr CoffObjLd::strGet(void* str_)
-{
-	return ::strGet(strTab, str_);
-}
 
 int CoffObjLd::findSect(cch* find)
 {
@@ -224,15 +224,10 @@ xarray<byte> CoffObj::save()
 	return {data, wr.wrPos};
 }
 
-cstr CoffObj::strGet(void* str_)
-{
-	return ::strGet(strTab, str_);
-}
-
 int CoffObj::symbol_find(cch* name)
 {
 	FOR_FI(symbols, symb, i,
-		cstr str = strGet(&symb.Name1);
+		cstr str = symb.name(strTab);
 		if(!str.cmp(name)) return i+1;
 		i += symb.NumberOfAuxSymbols;
 	);

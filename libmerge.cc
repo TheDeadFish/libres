@@ -19,7 +19,7 @@ void add_object(ArFile::FileInfo& fi, CoffObjLd& co)
 	// enumerate symbols
 	FOR_FI(co.symbols, symb, i,
 		if(symb.StorageClass == 2) {
-			cstr str = co.strGet(&symb.Name1);
+			cstr str = symb.name(co.strTab);
 			fi.symb.push_back(str.xdup().data);
 		}
 		i += symb.NumberOfAuxSymbols;

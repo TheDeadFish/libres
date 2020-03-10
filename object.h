@@ -20,6 +20,9 @@ struct CoffObjLd
 		
 		DWORD Name1, Name2;
 		
+		cstr name(char* strTab);
+		
+		
 		
 		DWORD Value;
 		WORD Section;
@@ -30,7 +33,8 @@ struct CoffObjLd
 	
 	struct Section : IMAGE_SECTION_HEADER
 	{
-		cstr name(CoffObjLd& This) { return This.strGet(Name); }
+		cstr name(CoffObjLd& This) { 
+			return sect_getName(this, This.strTab); }
 		xarray<byte> data(CoffObjLd& This) { 
 			return {This.get(PointerToRawData), SizeOfRawData}; }
 		xarray<ObjRelocs> relocs(CoffObjLd& This) {
@@ -55,9 +59,6 @@ struct CoffObjLd
 	Void get(u32 offset) { return 
 		offset ? fileData+offset : 0; }
 	
-	cstr strGet(void* str);
-	
-	
 	char* strTab;
 	
 	
@@ -66,6 +67,10 @@ struct CoffObjLd
 	
 	IMAGE_FILE_HEADER& ifh() { return 
 		*(IMAGE_FILE_HEADER*)fileData.data; }
+		
+		
+	static __thiscall cstr sect_getName(
+		IMAGE_SECTION_HEADER* ish, char* strTab);
 };
 
 struct CoffObj
