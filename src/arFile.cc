@@ -84,6 +84,8 @@ void parse_stat(ArFile::Stat* stat, ArHeader* head)
 
 bool ArFile::load(byte* data, u32 size)
 {
+	this->free();
+	
 	byte* extNames = 0;
 	u32* symTable = 0;
 	byte* curPos = data;
@@ -170,6 +172,7 @@ bool ArFile::load(byte* data, u32 size)
 
 int ArFile::load(cch* name)
 {
+	this->free();
 	auto file = loadFile(name);
 	if(!file) return ERR_OPEN;
 	SCOPE_EXIT(::free(file));
