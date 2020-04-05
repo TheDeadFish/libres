@@ -28,6 +28,9 @@ struct ArFile
 
 	int load(cch* file);
 	bool load(byte* data, u32 size);
+	bool load(xarray<byte> xa) {
+		return load(xa, xa.len); }
+	
 	int save(cch* file);
 	~ArFile(); void free();
 	

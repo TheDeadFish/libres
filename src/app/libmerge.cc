@@ -1,6 +1,6 @@
 #include <stdshit.h>
-#include "arFile.h"
-#include "object.h"
+#include "arMerge.h"
+
 const char progName[] = "libmerge";
 
 void fatal_error(cch* fmt, ...)
@@ -13,41 +13,6 @@ void fatal_error(cch* fmt, ...)
 
 static cch* prefix="";
 static ArFile arOut;
-
-void add_object(ArFile::FileInfo& fi, CoffObjLd& co)
-{
-	// enumerate symbols
-	FOR_FI(co.symbols, symb, i,
-		if(symb.StorageClass == 2) {
-			cstr str = symb.name(co.strTab);
-			fi.symb.push_back(str.xdup().data);
-		}
-		i += symb.NumberOfAuxSymbols;
-	);
-	
-	fi.data.init(co.fileData);
-}
-
-void add_file(xarray<byte> file, 
-	cch* path, ArFile::FileInfo* fi)
-{
-	// open object file
-	CoffObjLd co;
-	if(!co.load(file.data, file.len)) {
-		fatal_error("failed to load object: %s%c%s",
-			path, fi ? ':' : 0, fi ? fi->name.data : "" );
-	}
-	
-	// get object name
-	xstr name = Xstrfmt("%s%s", prefix, 
-		fi ? fi->name.data : getName(path).data);
-	
-	// insert the object
-	auto& fiOut = arOut.replNew(name);
-	if(fi) { memswap(&fiOut.stat, &fi->stat,
-			sizeof(*fi)-sizeof(xstr)); 
-	} else add_object(fiOut, co);
-}
 
 int main(int argc, char** argv)
 {
@@ -70,18 +35,17 @@ int main(int argc, char** argv)
 		
 		if(ArFile::chk(file.data, file.len))
 		{
-			ArFile arIn;
-			if(!arIn.load(file.data, file.len))
-				fatal_error("bad file: %s", argv[i]);
-				
-			for(auto& fi : arIn) {
-				add_file(fi.data, argv[i], &fi);
+			cch* err = arMerge_library(arOut, file, prefix);
+			if(err) { if(IS_PTR(err)) { fatal_error(
+				"bad object file: %s:%s", argv[i], err); }
+				fatal_error("bad library file: %s", argv[i]); 
 			}
-			
+
 			file.free();			
 				
 		} else {
-			add_file(file, argv[i], NULL);
+			cch* err = arMerge_object(arOut, file, argv[i], prefix);
+			if(err) fatal_error("bad object file: %s", err);
 		}
 	}
 	

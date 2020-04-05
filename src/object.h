@@ -4,6 +4,9 @@ struct CoffObjWr;
 struct CoffObjLd
 {
 	bool load(byte* data, size_t size);
+	bool load(xarray<byte> xa) {
+		return load(xa.data, xa.len); }
+
 	
 	struct ObjRelocs
 	{
