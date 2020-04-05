@@ -30,6 +30,7 @@ void combo_userSel(HWND hwnd, int ctrlId, int sel)
 		MAKEWPARAM(ctrlId, CBN_SELCHANGE), (LPARAM)hcb);
 }
 
+static
 char* stristr( const char* str1, const char* str2 )
 {
 	const char* p1 = str1 ;
@@ -70,4 +71,11 @@ char* stristr( const char* str1, const char* str2 )
 	}
 
 	return *p2 == 0 ? (char*)r : 0 ;
+}
+
+static
+BOOL IsDlgItemEnabled(HWND hwnd, int ctrlId)
+{
+	hwnd = GetDlgItem(hwnd, ctrlId);
+	return IsWindowEnabled(hwnd);
 }

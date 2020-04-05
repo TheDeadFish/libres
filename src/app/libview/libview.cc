@@ -13,6 +13,7 @@ static ArFile s_arFile;
 static HWND s_hFileView;
 static HWND s_hSymbView;
 static int s_viewSel;
+static cch* s_fileName;
 
 void reset_dlg(HWND hwnd)
 {
@@ -21,7 +22,6 @@ void reset_dlg(HWND hwnd)
 	dlgCombo_reset(hwnd, IDC_FILESEL);
 	EnableDlgItem(hwnd, IDC_SAVE, 0);
 }
-
 
 void symbView_init(HWND hwnd)
 {
@@ -70,24 +70,26 @@ void fileView_init(HWND hwnd)
 void load_file(HWND hwnd, cch* file)
 {
 	if(file == NULL) return;
+	setDlgItemText(hwnd, IDC_FNAME, "");
+	free_ref(s_fileName);
 
 	reset_dlg(hwnd);
 	if(int ec = s_arFile.load(file)) {
 		contError(hwnd, "failed to load library: %s\n", 
 			s_arFile.errStr(ec)); return; 
 	}
-	
+
+	s_fileName = xstrdup(file);
 	setDlgItemText(hwnd, IDC_FNAME, file);
 	fileView_init(hwnd);
 }
 
 void save_file(HWND hwnd)
 {
-	xstr name = getDlgItemText(hwnd, IDC_FNAME);
-	if(int ec = s_arFile.save(name)) {
+	if(int ec = s_arFile.save(s_fileName)) {
 		contError(hwnd, "failed to save library: %s\n", 
 			s_arFile.errStr(ec)); return; 
-	}	
+	}
 }
 
 void selectTab(HWND hwnd)
@@ -119,8 +121,23 @@ void mainDlgInit(HWND hwnd, cch* file)
 	load_file(hwnd, file);
 }
 
+bool check_save(HWND hwnd)
+{
+	if(IsDlgItemEnabled(hwnd, IDC_SAVE)) 
+	{
+		xstr str = xstrfmt("Abandon changes to file: %s", s_fileName);
+		int result = MessageBoxA(hwnd, str, "Abandon changes?",	MB_YESNO);
+		return result == IDYES;
+	}
+	
+	return true;
+}
+
+
+
 void load_file(HWND hwnd)
 {
+	if(!check_save(hwnd)) return;
 	OpenFileName ofn;
 	if(!ofn.doModal(hwnd)) return;
 	load_file(hwnd, ofn.lpstrFile);
@@ -128,6 +145,7 @@ void load_file(HWND hwnd)
 
 void dropFiles(HWND hwnd, LPARAM lParam)
 {
+	if(!check_save(hwnd)) return;
 	xArray<xstr> files = hDropGet((HANDLE)lParam);
 	load_file(hwnd, files[0]);
 }
@@ -144,12 +162,18 @@ void file_keyDown(HWND hwnd, NMLVKEYDOWN& nvm)
 	}
 }
 
+void onClose(HWND hwnd)
+{
+	if(!check_save(hwnd)) return;
+	EndDialog(hwnd, 0);
+}
+
 BOOL CALLBACK mainDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	DLGMSG_SWITCH(
 		ON_MESSAGE(WM_DROPFILES, dropFiles(hwnd, wParam))
 	  CASE_COMMAND(
-	    ON_COMMAND(IDCANCEL, EndDialog(hwnd, 0))
+	    ON_COMMAND(IDCANCEL, onClose(hwnd))
 			ON_COMMAND(IDC_LOAD, load_file(hwnd))
 			ON_COMMAND(IDC_SAVE, save_file(hwnd))
 			ON_COMMAND(IDC_FILESYMB, symbView_init(hwnd))
