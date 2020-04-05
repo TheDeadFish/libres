@@ -51,6 +51,7 @@ struct ArFile
 	void addMove(FileInfo& that);
 	FileInfo& addNew(void);
 	FileInfo& replNew(cch* name);
+	bool remove(int i);
 	
 private:
 	//int parseSymbol(FileRead& fp);

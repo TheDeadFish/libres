@@ -11,3 +11,9 @@ add_library(res object.cc arFile.cc)
 link_libraries(-lstdshit res)
 add_executable(libres libres.cc)
 add_executable(libmerge libmerge.cc)
+
+
+# libview
+link_libraries(-lwin32hlp)
+add_link_options(-mwindows)
+add_executable(libview libview/libview.cc libview/resource.rc)

@@ -350,3 +350,11 @@ bool ArFile::chk(byte* data, u32 size)
 	if(size < 8) return false;
 	return RQ(data) == arMagic;
 }
+
+bool ArFile::remove(int i)
+{
+	if(i >= files.len) 
+		return false;
+	files.Remove(files+i); 
+	return true;
+}
