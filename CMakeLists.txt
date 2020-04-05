@@ -7,13 +7,13 @@ set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ../bin)
 add_compile_options(-Wno-address-of-packed-member)
 add_link_options(-s -Wl,--gc-sections)
 
-add_library(res object.cc arFile.cc)
+add_library(res src/object.cc src/arFile.cc)
 link_libraries(-lstdshit res)
-add_executable(libres libres.cc)
-add_executable(libmerge libmerge.cc)
+add_executable(libres src/app/libres.cc)
+add_executable(libmerge src/app/libmerge.cc)
 
 
 # libview
 link_libraries(-lwin32hlp)
 add_link_options(-mwindows)
-add_executable(libview libview/libview.cc libview/resource.rc)
+add_executable(libview src/app/libview/libview.cc src/app/libview/resource.rc)
