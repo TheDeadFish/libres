@@ -44,3 +44,28 @@ cch* arMerge_library(ArFile& arOut,
 	
 	return 0;
 }
+
+
+char* arMerge_file(ArFile& arOut,
+	xarray<byte> file, cch* name, cch* prefix)
+{
+	char* result = NULL;
+
+	if(ArFile::chk(file.data, file.len))
+	{
+		cch* err = arMerge_library(arOut, file, prefix);
+		if(err) result = xstrfmt(IS_PTR(err) ? 
+			"bad object file: %s:%s" : "bad library file: %s",
+			name, err); 
+	} 
+	else 
+	{
+		cch* err = arMerge_object(arOut, file, name, prefix);
+		if(!err) goto SKIP_FREE;
+		result = xstrfmt("bad object/file: %s", err);
+	}
+	
+	file.free();
+SKIP_FREE:
+	return result;
+}

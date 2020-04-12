@@ -33,20 +33,8 @@ int main(int argc, char** argv)
 		auto file = loadFile(argv[i]);
 		if(!file) fatal_error("failed to open input file: %s\n", argv[i]);
 		
-		if(ArFile::chk(file.data, file.len))
-		{
-			cch* err = arMerge_library(arOut, file, prefix);
-			if(err) { if(IS_PTR(err)) { fatal_error(
-				"bad object file: %s:%s", argv[i], err); }
-				fatal_error("bad library file: %s", argv[i]); 
-			}
-
-			file.free();			
-				
-		} else {
-			cch* err = arMerge_object(arOut, file, argv[i], prefix);
-			if(err) fatal_error("bad object file: %s", err);
-		}
+		char* err = arMerge_file(arOut, file, argv[i], prefix);
+		if(err) fatal_error(err);
 	}
 	
 	// save the library file
