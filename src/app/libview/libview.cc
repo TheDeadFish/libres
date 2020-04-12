@@ -3,6 +3,7 @@
 #include "resource.h"
 #include "arFile.h"
 #include "stuff.h"
+#include "arMerge.h"
 
 const char progName[] = "libView";
 
@@ -150,15 +151,26 @@ void dropFiles(HWND hwnd, LPARAM lParam)
 	load_file(hwnd, files[0]);
 }
 
+static
+void change_file(HWND hwnd)
+{
+	fileView_init(hwnd);
+	EnableDlgItem(hwnd, IDC_SAVE, 1);
+}
+
+void delete_file(HWND hwnd)
+{
+	int sel = dlgCombo_getSel(hwnd, IDC_FILESEL);
+	if(sel >= 0) {
+		s_arFile.remove(sel);
+		change_file(hwnd);
+	}
+}
+
 void file_keyDown(HWND hwnd, NMLVKEYDOWN& nvm)
 {
 	if(nvm.wVKey == VK_DELETE) {
-		int sel = dlgCombo_getSel(hwnd, IDC_FILESEL);
-		if(sel >= 0) {
-			s_arFile.remove(sel);
-			fileView_init(hwnd);
-			EnableDlgItem(hwnd, IDC_SAVE, 1);
-		}
+		delete_file(hwnd);
 	}
 }
 
@@ -168,12 +180,35 @@ void onClose(HWND hwnd)
 	EndDialog(hwnd, 0);
 }
 
+void add_files(HWND hwnd, xarray<xstr> lst)
+{
+	for(auto name : lst)
+	{
+		auto file = loadFile(name);
+		if(!file) contError(hwnd, "failed to open input file: %s\n",name);
+		else { xstr err = arMerge_file(s_arFile, file, name, "");
+			if(err) { contError(hwnd, "failed to open input file: %s\n", err); 
+			} else { change_file(hwnd); }
+		}
+	}
+}
+
+void add_file(HWND hwnd)
+{
+	OpenFileName ofn;
+	ofn.Flags |= OFN_ALLOWMULTISELECT;
+	if(!ofn.doModal(hwnd)) return;
+	add_files(hwnd, ofn.lst());
+}
+
 BOOL CALLBACK mainDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	DLGMSG_SWITCH(
 		ON_MESSAGE(WM_DROPFILES, dropFiles(hwnd, wParam))
 	  CASE_COMMAND(
 	    ON_COMMAND(IDCANCEL, onClose(hwnd))
+			ON_COMMAND(IDC_DELETE, delete_file(hwnd))
+			ON_COMMAND(IDC_ADD, add_file(hwnd))
 			ON_COMMAND(IDC_LOAD, load_file(hwnd))
 			ON_COMMAND(IDC_SAVE, save_file(hwnd))
 			ON_COMMAND(IDC_FILESYMB, symbView_init(hwnd))

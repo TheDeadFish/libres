@@ -13,3 +13,5 @@
 #define IDC_SYMBVIEW                            1007
 #define IDC_FILESEL                             1008
 #define IDC_FINDKILL                            1010
+#define IDC_ADD                                 1012
+#define IDC_DELETE                              1013
