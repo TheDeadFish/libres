@@ -91,6 +91,8 @@ void save_file(HWND hwnd)
 		contError(hwnd, "failed to save library: %s\n", 
 			s_arFile.errStr(ec)); return; 
 	}
+	
+	EnableDlgItem(hwnd, IDC_SAVE, 0);
 }
 
 void selectTab(HWND hwnd)
