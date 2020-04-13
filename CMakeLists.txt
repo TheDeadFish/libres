@@ -17,4 +17,8 @@ add_executable(libmerge src/app/libmerge.cc)
 # libview
 link_libraries(-lwin32hlp)
 add_link_options(-mwindows)
-add_executable(libview src/app/libview/libview.cc src/app/libview/resource.rc)
+add_executable(libview 
+	src/app/libview/libview.cc 
+	src/app/libview/resource.rc
+	src/app/libview/tempfile.cc
+)

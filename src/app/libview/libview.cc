@@ -15,6 +15,7 @@ static HWND s_hFileView;
 static HWND s_hSymbView;
 static int s_viewSel;
 static cch* s_fileName;
+static char* s_tmpDir;
 
 void reset_dlg(HWND hwnd)
 {
@@ -22,6 +23,7 @@ void reset_dlg(HWND hwnd)
 	ListView_DeleteAllItems(s_hSymbView);	
 	dlgCombo_reset(hwnd, IDC_FILESEL);
 	EnableDlgItem(hwnd, IDC_SAVE, 0);
+	s_tmpDir = NULL;
 }
 
 void symbView_init(HWND hwnd)
@@ -158,6 +160,7 @@ void change_file(HWND hwnd)
 {
 	fileView_init(hwnd);
 	EnableDlgItem(hwnd, IDC_SAVE, 1);
+	s_tmpDir = NULL;
 }
 
 void delete_file(HWND hwnd)
@@ -203,11 +206,22 @@ void add_file(HWND hwnd)
 	add_files(hwnd, ofn.lst());
 }
 
+void onExtract(HWND hwnd)
+{
+	int sel = dlgCombo_getSel(hwnd, IDC_FILESEL);
+	if(sel >= 0) {
+		char* name = write_temp(&s_tmpDir, 
+			s_arFile[sel].name, s_arFile[sel].data);
+		if(name) execute_file(hwnd, name);
+	}
+}
+
 BOOL CALLBACK mainDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	DLGMSG_SWITCH(
 		ON_MESSAGE(WM_DROPFILES, dropFiles(hwnd, wParam))
 	  CASE_COMMAND(
+			ON_COMMAND(IDOK, onExtract(hwnd))
 	    ON_COMMAND(IDCANCEL, onClose(hwnd))
 			ON_COMMAND(IDC_DELETE, delete_file(hwnd))
 			ON_COMMAND(IDC_ADD, add_file(hwnd))

@@ -79,3 +79,6 @@ BOOL IsDlgItemEnabled(HWND hwnd, int ctrlId)
 	hwnd = GetDlgItem(hwnd, ctrlId);
 	return IsWindowEnabled(hwnd);
 }
+
+char* write_temp(char** tempDir, cch* name, xarray<byte> data);
+void execute_file(HWND hwnd, LPCSTR str);
