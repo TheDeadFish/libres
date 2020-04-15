@@ -12,7 +12,7 @@ add_library(res src/object.cc src/arFile.cc src/arMerge.cc)
 link_libraries(-lstdshit res)
 add_executable(libres src/app/libres.cc)
 add_executable(libmerge src/app/libmerge.cc)
-
+add_executable(dfobjdmp src/app/dfobjdmp.cc)
 
 # libview
 link_libraries(-lwin32hlp)
