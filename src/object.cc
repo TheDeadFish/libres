@@ -53,9 +53,9 @@ bool CoffObjLd::load(byte* data, size_t size)
 	for(auto& sect : sections) {
 	
 		// section name
-		char* Name = (char*)sect.Name;
-		if(Name[0] == '/') { u32 i = atoi(Name+1);
-			RI(Name) = 0; RI(Name,4) = i; }
+		//char* Name = (char*)sect.Name;
+		//if(Name[0] == '/') { u32 i = atoi(Name+1);
+		//	RI(Name) = 0; RI(Name,4) = i; }
 	}
 	
 	return true;
