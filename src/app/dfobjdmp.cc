@@ -12,6 +12,15 @@ void fatal_error(cch* fmt, ...)
 	exit(1);
 }
 
+void print_data(void* data, int len, bool newLn = true)
+{
+	for(int i = 0; i < len;) {
+		printf("%02X", RB(data, i));
+		if(++i < len) printf(",");
+		else if(newLn)printf ("\n");
+	}
+}
+
 int main(int argc, char** argv)
 {
 	// display ussage
@@ -36,7 +45,7 @@ int main(int argc, char** argv)
 	int iSect = 1;
 	for(auto& sect : obj.sections) {
 		printf("\n\n[SECTION:%d]\n", iSect++);
-		printf("\t%-22s %.*s\n", "Name", sect.name(obj).prn());
+		printf("\t%-22s ", "Name"); print_data(&sect.Name, 8);
 		#define x(nm) printf("\t%-22s %08X\n", #nm, sect.nm);
 		x(Misc.VirtualSize) x(VirtualAddress) x(SizeOfRawData)
 		x(PointerToRawData)x(PointerToRelocations)
@@ -57,9 +66,16 @@ int main(int argc, char** argv)
 	// enumerate symbols
 	printf("\n[SYMBOLS]\n");
 	FOR_FI(obj.symbols, symb, i,
-		printf("%\t%08X, %4d, %02X, %02X, %02X, %.*s\n", 
+		printf("%\t%08X, %4d, %02X, %02X, %02X, %.*s", 
 			symb.Value, (short)symb.Section, symb.Type, symb.StorageClass, 
 			symb.NumberOfAuxSymbols, symb.name(obj.strTab).prn());
+		
+		if(symb.NumberOfAuxSymbols) {
+			printf(" - ");
+			print_data(&symb+1, symb.NumberOfAuxSymbols*sizeof(symb));
+		}
+		
+		printf("\n");
 		i += symb.NumberOfAuxSymbols;
 	);
 	
