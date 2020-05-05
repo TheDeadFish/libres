@@ -85,6 +85,7 @@ void parse_stat(ArFile::Stat* stat, ArHeader* head)
 bool ArFile::load(byte* data, u32 size)
 {
 	this->free();
+	#define LOAD_ERR { this->free(); return false; }
 	
 	byte* extNames = 0;
 	u32* symTable = 0;
@@ -93,7 +94,7 @@ bool ArFile::load(byte* data, u32 size)
 		
 	// read header
 	if(end.read64(curPos) != arMagic)
-		return false;
+		LOAD_ERR;
 		
 		
 	// loop over files
@@ -102,12 +103,12 @@ bool ArFile::load(byte* data, u32 size)
 		curPos += (curPos-data)&1;
 		if(end.eof(curPos)) break;
 		ArHeader* head = end.geti<ArHeader>(curPos);
-		if(!head) return false;
+		if(!head) LOAD_ERR;
 		
 		// get file data
 		u32 size = atoi(head->fileSize);
 		byte* dataPos = end.geti(curPos, size);
-		if(!dataPos) return false;
+		if(!dataPos) LOAD_ERR;
 		
 		// check the name
 		char* name = head->fileName;
@@ -124,7 +125,7 @@ bool ArFile::load(byte* data, u32 size)
 			// extended name
 			u32 offset = atoi(head->fileName+1);
 			if(!extNames || ovf_add(name, 
-				extNames, offset)) return false;
+				extNames, offset)) LOAD_ERR;
 		}
 		
 		// 
@@ -132,7 +133,7 @@ bool ArFile::load(byte* data, u32 size)
 		fInfo.data.init(xmemdup8(dataPos, size), size);
 		fInfo.stat.date = PTRDIFF(head, data);
 		for(u32 len = 0;;len++) {
-			if(end.chk(name+len)) return false;
+			if(end.chk(name+len)) LOAD_ERR;
 			if(name[len] == '/') { fInfo.name 
 				= xstrdup(name, len);	break; }
 		}
@@ -142,20 +143,20 @@ bool ArFile::load(byte* data, u32 size)
 	if(symTable) {
 
 		// check offset array
-		if(end.chk(symTable)) return false;
+		if(end.chk(symTable)) LOAD_ERR;
 		u32 count = bswap32(symTable[-1]);
 		char* namePos = end.get<char>(symTable, count);
-		if(!namePos) return false;
+		if(!namePos) LOAD_ERR;
 		
 		// loop over symbols
 		for(u32 offset : RngRBL(symTable, count)) {
 			char* name = end.strchk(namePos);
-			if(!name) return false;
+			if(!name) LOAD_ERR;
 			for(auto& fInfo : files) {
 				if(fInfo.stat.date == bswap32(offset)) {
 					fInfo.symb.push_back(xstrdup(name));
 						goto FOUND_OFFSET; } }
-			return false;
+			LOAD_ERR;
 			FOUND_OFFSET:;
 			
 		}

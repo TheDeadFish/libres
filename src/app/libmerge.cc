@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 
 	// load the library
 	cch* outFile = argv[1];
-	if(arOut.load(outFile)) {
+	if(arOut.load(outFile) >= ArFile::ERR_READ) {
 		fatal_error("failed to open output file: %s\n", outFile); }
 
 	for(int i = 2; i < argc; i++) {
