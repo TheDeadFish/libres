@@ -80,7 +80,7 @@ int CoffObj::sect_create(cch* name)
 int CoffObj::symbol_create(cch* name, int extra)
 {
 	// create 
-	int index = symbols.getCount()+1;
+	int index = symbols.getCount();
 	auto* symb = symbols.xNalloc(extra+1);
 	add_string(&symb->Name1, name);
 	return index;
@@ -96,6 +96,8 @@ void CoffObj::add_string(DWORD* dst, cch* name)
 
 int CoffObj::add_string(cch* name)
 {
+	if(strTab.dataSize == 0) {
+		strTab.write32(4); }
 	int index = strTab.getCount();
 	strTab.strcat2(name);
 	RI(strTab.dataPtr) = strTab.dataSize;

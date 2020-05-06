@@ -105,7 +105,7 @@ struct CoffObj
 	// symbol api
 	cch* symbol_name(int i);
 	int symbol_create(cch* name, int extra);
-	auto& symbol(int i) { return symbols[i-1]; }
+	auto& symbol(int i) { return symbols[i]; }
 	int symbol_find(cch* name);
 	
 	bool x64() { return Machine == 0x8664; }

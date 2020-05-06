@@ -6,7 +6,8 @@ void arMerge_symbols(ArFile::FileInfo& fi, CoffObjLd& co)
 {
 	// enumerate symbols
 	FOR_FI(co.symbols, symb, i,
-		if(symb.StorageClass == 2) {
+		if((symb.StorageClass == 2)
+		&&(symb.Section > 0)) {
 			cstr str = symb.name(co.strTab);
 			fi.symb.push_back(str.xdup().data);
 		}

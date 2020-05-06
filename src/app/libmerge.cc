@@ -29,7 +29,7 @@ int main(int argc, char** argv)
 		fatal_error("failed to open output file: %s\n", outFile); }
 
 	for(int i = 2; i < argc; i++) {
-		if(strScmp(argv[i], "-p")) { prefix = argv[i]; continue; }
+		if(strScmp(argv[i], "-p")) { prefix = argv[i]+2; continue; }
 		auto file = loadFile(argv[i]);
 		if(!file) fatal_error("failed to open input file: %s\n", argv[i]);
 		
