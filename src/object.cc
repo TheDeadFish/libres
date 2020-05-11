@@ -1,4 +1,5 @@
 #include <stdshit.h>
+#include <time.h>
 #include "object.h"
 
 cstr CoffObjLd::sect_getName(
@@ -207,6 +208,8 @@ void CoffObjWr::save(CoffObj& obj)
 	write(obj.strTab.data(), obj.strTab.dataSize);
 }
 
+CoffObj::~CoffObj() {}
+void CoffObj::free() { pRst(this); }
 
 int CoffObj::save(cch* file)
 {
@@ -235,4 +238,17 @@ int CoffObj::symbol_find(cch* name)
 	);
 
 	return 0;
+}
+
+void CoffObj::init(WORD Machine)
+{
+	this->free(); this->Machine = Machine;
+	Characteristics = peCoff64(Machine) ? 0x04 : 0x104;
+	TimeDateStamp = time(0);
+}
+
+byte* CoffObj::Section::xalloc(u32 size)
+{
+	mustFree = true;
+	return data.xcalloc(size);
 }

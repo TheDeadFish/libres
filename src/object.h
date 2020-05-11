@@ -1,12 +1,16 @@
 #pragma once
 struct CoffObjWr;
 
+constexpr bool peCoff64(WORD Machine) { return Machine == 0x8664; }
+constexpr WORD peCoff_relocType_ptr(WORD Machine) {
+	if(Machine == 0x8664) return IMAGE_REL_AMD64_ADDR64;
+	else return IMAGE_REL_I386_DIR32; }
+
 struct CoffObjLd
 {
 	bool load(byte* data, size_t size);
 	bool load(xarray<byte> xa) {
 		return load(xa.data, xa.len); }
-
 	
 	struct ObjRelocs
 	{
@@ -25,7 +29,13 @@ struct CoffObjLd
 		
 		cstr name(char* strTab);
 		
-		
+		// 
+		void init_extData() { StorageClass=2; }
+		void init_extFunc() { init_extData(); Type = 0x20; }
+		void init_extData(DWORD sect) { Section = sect; init_extData(); }
+		void init_extFunc(DWORD sect) { Section = sect; init_extFunc(); }
+		void init_extData(DWORD sect, DWORD val) { Value = val; init_extData(sect); }
+		void init_extFunc(DWORD sect, DWORD val) { Value = val; init_extFunc(sect); }		
 		
 		DWORD Value;
 		WORD Section;
@@ -86,10 +96,32 @@ struct CoffObj
 	struct Section {
 		DWORD Name1, Name2;
 		DWORD Characteristics;
+		bool mustFree;
+		
+		
+		byte* xalloc(u32 size);
 		
 
 		xarray<byte> data;
 		xarray<CoffObjLd::ObjRelocs> relocs;
+		
+		
+		
+		
+		enum { 
+			TYPE_CODE = IMAGE_SCN_MEM_READ|IMAGE_SCN_MEM_EXECUTE|IMAGE_SCN_CNT_CODE,
+			TYPE_RDATA = IMAGE_SCN_MEM_READ|IMAGE_SCN_CNT_INITIALIZED_DATA
+		};
+		
+		
+		constexpr int sectAlignMask(int x) {
+			return ((__builtin_clz(x)^31)+1)<<20; }
+			
+		void init(int align, DWORD flags) {
+			Characteristics = sectAlignMask(align)|flags; }
+			
+		void reloc_create(DWORD offset, DWORD symbol, WORD type) { 
+			relocs.push_back(offset, symbol, type); }
 	};
 	
 	// load/save api
@@ -108,7 +140,17 @@ struct CoffObj
 	auto& symbol(int i) { return symbols[i]; }
 	int symbol_find(cch* name);
 	
+	
+	void init(WORD Machine);
+	
+	
+	
 	bool x64() { return Machine == 0x8664; }
+	int ptrSz() { return x64() ? 8 : 4; }
+	
+	~CoffObj();
+	void free();
+
 	
 //private:
 	xArray<Section> sections;
