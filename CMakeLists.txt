@@ -8,7 +8,10 @@ include_directories(src)
 add_compile_options(-Wno-address-of-packed-member)
 add_link_options(-s -Wl,--gc-sections)
 
-add_library(res src/object.cc src/arFile.cc src/arMerge.cc)
+add_library(res src/object.cc src/arFile.cc src/arMerge.cc
+	src/thunkobj.cc
+
+)
 link_libraries(-lstdshit res)
 add_executable(libres src/app/libres.cc)
 add_executable(libmerge src/app/libmerge.cc)
