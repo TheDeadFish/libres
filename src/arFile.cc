@@ -116,6 +116,7 @@ bool ArFile::load(byte* data, u32 size)
 		
 			// special files
 			if(head->fileName[1] == ' ') { 
+				if(symTable) continue;
 				symTable = ((u32*)dataPos)+1;
 				parse_stat(&stat, head); continue; }
 			if(head->fileName[1] == '/') { 
