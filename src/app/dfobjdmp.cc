@@ -49,6 +49,7 @@ int main(int argc, char** argv)
 	for(auto& sect : obj.sections) {
 		printf("\n\n[SECTION:%d]\n", iSect++);
 		printf("\t%-22s ", "Name"); print_data(&sect.Name, 8);
+		printf("\t%-22s %.*s\n", "name", sect.name(obj).prn());
 		#define x(nm) printf("\t%-22s %08X\n", #nm, sect.nm);
 		x(Misc.VirtualSize) x(VirtualAddress) x(SizeOfRawData)
 		x(PointerToRawData)x(PointerToRelocations)
