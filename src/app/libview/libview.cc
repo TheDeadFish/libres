@@ -26,6 +26,12 @@ void reset_dlg(HWND hwnd)
 	s_tmpDir = NULL;
 }
 
+char* fmtName(ArFile::FileInfo& file)
+{
+	int index = s_arFile.files.offset(&file)+1;
+	return xstrfmt("%d. %s\n", index, file.name.data);
+}
+
 void symbView_init(HWND hwnd)
 {
 	ListView_DeleteAllItems(s_hSymbView);
@@ -40,7 +46,7 @@ void symbView_init(HWND hwnd)
 			for(auto& symb : file.symb) {
 				if(find && !stristr(symb, find)) continue;
 				int i = lstView_iosText(s_hSymbView, -1, symb);
-				lstView_iosText(s_hSymbView, i, 1, file.name);
+				lstView_iosText(s_hSymbView, i, 1, xstr(fmtName(file)));
 			}
 		}
 	);
@@ -60,7 +66,7 @@ void fileView_init(HWND hwnd)
 	for(auto& file : s_arFile.files)
 	{
 		dlgCombo_addStr(hwnd, IDC_FILESEL, file.name);
-		int i = lstView_iosText(s_hFileView, -1, file.name);
+		int i = lstView_iosText(s_hFileView, -1, xstr(fmtName(file)));
 		lstView_iosInt(s_hFileView, i, 1, file.data.len);
 	}
 	
