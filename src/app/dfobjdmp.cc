@@ -31,7 +31,10 @@ int main(int argc, char** argv)
 	// load the object
 		
 	CoffObjLd obj;
-	obj.load(loadFile(argv[1]));
+	int err = obj.load(loadFile(argv[1]));
+	if(err) { printf("load error: %d\n", err);
+		return 1; }
+	
 	
 	// print header
 	printf("[IMAGE_FILE_HEADER]\n");

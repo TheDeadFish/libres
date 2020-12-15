@@ -19,7 +19,7 @@ cch* arMerge_object(ArFile& arOut,
 	xarray<byte> file, cch* name, cch* prefix)
 {
 	CoffObjLd co;
-	if(!co.load(file)) return name;
+	if(co.load(file)) return name;
 	auto& fiOut = arOut.replNew(Xstrfmt(
 		"%s%s", prefix, getName(name).data));
 	fiOut.data.init(co.fileData);
@@ -36,7 +36,7 @@ cch* arMerge_library(ArFile& arOut,
 	
 	CoffObjLd co;
 	for(auto& fi : arIn) {
-		if(!co.load(fi.data)) return fi.name;
+		if(co.load(fi.data)) return fi.name;
 		auto& fiOut = arOut.replNew(Xstrfmt(
 			"%s%s", prefix, fi.name.data));
 		memswap(&fiOut.stat, &fi.stat,	

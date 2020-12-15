@@ -74,7 +74,7 @@ bool do_object(CoffObj& obj, xarray<byte> file,
 {
 	// open object file
 	CoffObjLd co;
-	if(!co.load(file.data, file.len))
+	if(co.load(file.data, file.len))
 		fatal_error("resource object bad");
 		
 	// get the list of names

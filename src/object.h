@@ -8,8 +8,8 @@ constexpr WORD peCoff_relocType_ptr(WORD Machine) {
 
 struct CoffObjLd
 {
-	bool load(byte* data, size_t size);
-	bool load(xarray<byte> xa) {
+	int load(byte* data, size_t size);
+	int load(xarray<byte> xa) {
 		return load(xa.data, xa.len); }
 	
 	struct ObjRelocs

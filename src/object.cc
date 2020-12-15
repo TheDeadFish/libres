@@ -28,25 +28,25 @@ struct FileRead : xarray<byte>
 	Void get(DWORD offset) { return Void(data, offset); }
 };
 
-bool CoffObjLd::load(byte* data, size_t size)
+int CoffObjLd::load(byte* data, size_t size)
 {
 	fileData = {data, size};
 	FileRead rd = {{data, size}};
 		
 	// check header & section table
 	if(rd.check(0, sizeof(IMAGE_FILE_HEADER))) 
-		return false;
+		return 1;
 	IMAGE_FILE_HEADER* objHeadr = rd.get(0);
 	DWORD nSects = objHeadr->NumberOfSections;
 	if(rd.check(sizeof(IMAGE_FILE_HEADER), nSects, 
-		sizeof(IMAGE_SECTION_HEADER))) return false;
+		sizeof(IMAGE_SECTION_HEADER))) return 2;
 		
 	// check symbol table & string table
 	DWORD nSymbols = objHeadr->NumberOfSymbols;
 	DWORD iSymbols = objHeadr->PointerToSymbolTable;
 	symbols.init(rd.get(iSymbols), nSymbols);
 	DWORD iStrTab; if(rd.offset(iStrTab, iSymbols, 
-		nSymbols, sizeof(ObjSymbol))) return false;
+		nSymbols, sizeof(ObjSymbol))) return 3;
 	strTab = rd.get(iStrTab);
 	
 	// load sections
@@ -59,7 +59,7 @@ bool CoffObjLd::load(byte* data, size_t size)
 		//	RI(Name) = 0; RI(Name,4) = i; }
 	}
 	
-	return true;
+	return 0;
 }	
 
 int CoffObjLd::findSect(cch* find)
