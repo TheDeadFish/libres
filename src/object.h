@@ -148,6 +148,7 @@ struct CoffObj
 	bool x64() { return Machine == 0x8664; }
 	int ptrSz() { return x64() ? 8 : 4; }
 	
+	CoffObj();
 	~CoffObj();
 	void free();
 

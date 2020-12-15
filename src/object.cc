@@ -97,8 +97,6 @@ void CoffObj::add_string(DWORD* dst, cch* name)
 
 int CoffObj::add_string(cch* name)
 {
-	if(strTab.dataSize == 0) {
-		strTab.write32(4); }
 	int index = strTab.getCount();
 	strTab.strcat2(name);
 	RI(strTab.dataPtr) = strTab.dataSize;
@@ -208,6 +206,7 @@ void CoffObjWr::save(CoffObj& obj)
 	write(obj.strTab.data(), obj.strTab.dataSize);
 }
 
+CoffObj::CoffObj() { strTab.write32(4); }
 CoffObj::~CoffObj() {}
 void CoffObj::free() { pRst(this); }
 
