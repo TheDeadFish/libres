@@ -34,4 +34,5 @@ FONT 8, "Ms Shell Dlg"
     PUSHBUTTON      "X", IDC_FINDKILL, 356, 42, 20, 14
     PUSHBUTTON      "Delete File", IDC_DELETE, 268, 63, 50, 14
     PUSHBUTTON      "Add File", IDC_ADD, 323, 63, 50, 14
+    PUSHBUTTON      "Extract", IDC_EXTRACT, 213, 63, 50, 14
 }

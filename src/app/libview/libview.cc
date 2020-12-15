@@ -222,12 +222,23 @@ void onExtract(HWND hwnd)
 	}
 }
 
+void onExtract2(HWND hwnd)
+{
+	int sel = dlgCombo_getSel(hwnd, IDC_FILESEL);
+	if(sel >= 0) {
+		SaveFileName ofn;
+		if(ofn.doModal(hwnd)) { saveFile(ofn.lpstrFile,
+			s_arFile[sel].data, s_arFile[sel].data.len); }
+	}
+}
+
 BOOL CALLBACK mainDlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	DLGMSG_SWITCH(
 		ON_MESSAGE(WM_DROPFILES, dropFiles(hwnd, wParam))
 	  CASE_COMMAND(
 			ON_COMMAND(IDOK, onExtract(hwnd))
+			ON_COMMAND(IDC_EXTRACT, onExtract2(hwnd))
 	    ON_COMMAND(IDCANCEL, onClose(hwnd))
 			ON_COMMAND(IDC_DELETE, delete_file(hwnd))
 			ON_COMMAND(IDC_ADD, add_file(hwnd))
