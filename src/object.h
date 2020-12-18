@@ -69,6 +69,7 @@ struct CoffObjLd
 	Section& sect(int i) { return sections[i-1]; }
 	cch* sect_name(int i) { return sect(i).name(*this); }
 	u32 sect_size(int i) { return sect(i).SizeOfRawData; }
+	xarray<byte> sect_data(int i) { return sect(i).data(*this); }
 	xarray<ObjRelocs> sect_relocs(int i) { return sect(i).relocs(*this); }
 	
 	// symbol helper functions
