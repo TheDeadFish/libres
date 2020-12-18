@@ -30,6 +30,7 @@ struct CoffObjLd
 		DWORD Name1, Name2;
 		
 		cstr name(char* strTab);
+		cstr name(CoffObjLd& obj) { return name(obj.strTab); }
 		
 		// 
 		void init_extData() { StorageClass=2; }
@@ -38,6 +39,10 @@ struct CoffObjLd
 		void init_extFunc(DWORD sect) { Section = sect; init_extFunc(); }
 		void init_extData(DWORD sect, DWORD val) { Value = val; init_extData(sect); }
 		void init_extFunc(DWORD sect, DWORD val) { Value = val; init_extFunc(sect); }		
+		
+		bool isFunc() { return Type == 0x20; }
+		bool hasSect() { return iSect() < 0xFFFD; }
+		u32 iSect() { return (Section-1); }
 		
 		DWORD Value;
 		WORD Section;
@@ -60,12 +65,16 @@ struct CoffObjLd
 	int findSect(cch* name);
 	xarray<byte> sectData(int iSect) {
 		return sections[iSect].data(*this); }
-		
-		
+
+	Section& sect(int i) { return sections[i-1]; }
+	cch* sect_name(int i) { return sect(i).name(*this); }
+	u32 sect_size(int i) { return sect(i).SizeOfRawData; }
+	xarray<ObjRelocs> sect_relocs(int i) { return sect(i).relocs(*this); }
 	
-	
-	
-	
+	// symbol helper functions
+	cstr symbName(int iSymb) { return symbols[iSymb].name(*this); }
+	u32 symbValue(int iSymb) { return symbols[iSymb].Value; }
+	u32 symbSect(int iSymb) { return symbols[iSymb].iSect(); }
 
 	xarray<ObjSymbol> symbols;
 	xarray<Section> sections;
