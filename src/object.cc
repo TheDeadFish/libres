@@ -28,6 +28,19 @@ struct FileRead : xarray<byte>
 	Void get(DWORD offset) { return Void(data, offset); }
 };
 
+int CoffObjLd::load(cch* name)
+{
+	auto data = loadFile(name);
+	if(!data) return -1;
+	int ret = load(data.data, data.len);
+	if(ret) free(); return ret;
+}
+
+void CoffObjLd::free()
+{
+	::free(fileData); ZINIT;
+}
+
 int CoffObjLd::load(byte* data, size_t size)
 {
 	fileData = {data, size};
