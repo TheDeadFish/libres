@@ -80,8 +80,8 @@ int CoffObjLd::findSect(cch* find)
 {
 	for(int i = 0; i < sections.len; i++) {
 		cstr name = sections[i].name(*this);
-		if(!name.cmp(find)) return i; }
-	return -1;
+		if(!name.cmp(find)) return i+1; }
+	return 0;
 }
 
 

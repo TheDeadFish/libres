@@ -79,8 +79,8 @@ bool do_object(CoffObj& obj, xarray<byte> file,
 		
 	// get the list of names
 	int iRsrc = co.findSect(".rsrc");
-	if(iRsrc < 0) return false;
-	auto strLst = rsrc_getNames(co.sectData(iRsrc));	
+	if(!iRsrc) return false;
+	auto strLst = rsrc_getNames(co.sect_data(iRsrc));
 	
 	// add the strings
 	obj.load(co);

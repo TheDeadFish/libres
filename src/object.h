@@ -56,8 +56,8 @@ struct CoffObjLd
 		void init_extFunc(DWORD sect, DWORD val) { Value = val; init_extFunc(sect); }		
 		
 		bool isFunc() { return Type == 0x20; }
-		bool hasSect() { return iSect() < 0xFFFD; }
-		u32 iSect() { return (Section-1); }
+		bool hasSect() { return inRng(iSect(), 1, 0xFFFD); }
+		u32 iSect() { return Section; }
 		
 		DWORD Value;
 		WORD Section;
@@ -78,9 +78,6 @@ struct CoffObjLd
 	
 	// section helper functions
 	int findSect(cch* name);
-	xarray<byte> sectData(int iSect) {
-		return sections[iSect].data(*this); }
-
 	Section& sect(int i) { return sections[i-1]; }
 	cch* sect_name(int i) { return sect(i).name(*this); }
 	u32 sect_size(int i) { return sect(i).SizeOfRawData; }
