@@ -265,3 +265,27 @@ byte* CoffObj::Section::xalloc(u32 size)
 	mustFree = true;
 	return data.xcalloc(size);
 }
+
+int peCoff_mapRelocType(WORD Machine, WORD type)
+{
+	// x86 relocation types
+	if(Machine == 0x14c) {
+		switch(type) {
+		case 0x06: return RelocType_DIR32;
+		case 0x07: return RelocType_DIR32NB;
+		case 0x14: return RelocType_REL32;
+		default: break; }
+	}
+
+	// x64 relocation types
+	ei(Machine == 0x8664) {
+		switch(type) {
+		case 0x01: return RelocType_DIR64;
+		case 0x02: return RelocType_DIR32;
+		case 0x03: return RelocType_DIR32NB;
+		case 0x04: return RelocType_REL32;
+		default: break; }
+	}
+
+	return -1;
+}

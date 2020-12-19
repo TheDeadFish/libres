@@ -6,6 +6,17 @@ constexpr WORD peCoff_relocType_ptr(WORD Machine) {
 	if(Machine == 0x8664) return IMAGE_REL_AMD64_ADDR64;
 	else return IMAGE_REL_I386_DIR32; }
 
+// relocation type
+enum {
+	RelocType_DIR32 = 0,
+	RelocType_REL32 = 1,
+	RelocType_DIR32NB = 2,
+	RelocType_DIR64 = 3
+};
+
+int peCoff_mapRelocType(WORD Machine, WORD type);
+
+
 struct CoffObjLd
 {
 	int load(cch* file);
@@ -19,6 +30,10 @@ struct CoffObjLd
 		DWORD offset;
 		DWORD symbol;
 		WORD type;
+		
+		int mapType(CoffObjLd& obj) { return
+			peCoff_mapRelocType(obj.Machine(), type); }
+		
 	} __attribute__((packed));
 	
 	
@@ -90,6 +105,8 @@ struct CoffObjLd
 	
 	
 	xarray<byte> fileData;
+	
+	WORD Machine() { return ifh().Machine; }
 	
 	IMAGE_FILE_HEADER& ifh() { return 
 		*(IMAGE_FILE_HEADER*)fileData.data; }
