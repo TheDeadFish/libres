@@ -86,6 +86,7 @@ struct CoffObjLd
 	
 	char* strTab;
 	
+	cch* fileName;
 	
 	
 	xarray<byte> fileData;

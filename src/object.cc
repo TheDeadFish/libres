@@ -30,6 +30,7 @@ struct FileRead : xarray<byte>
 
 int CoffObjLd::load(cch* name)
 {
+	fileName = name;
 	auto data = loadFile(name);
 	if(!data) return -1;
 	int ret = load(data.data, data.len);
