@@ -55,6 +55,7 @@ struct CoffObjLd
 		void init_extData(DWORD sect, DWORD val) { Value = val; init_extData(sect); }
 		void init_extFunc(DWORD sect, DWORD val) { Value = val; init_extFunc(sect); }		
 		
+		bool isExtern() { return StorageClass == 2; }
 		bool isFunc() { return Type == 0x20; }
 		bool hasSect() { return inRng(iSect(), 1, 0xFFFD); }
 		u32 iSect() { return Section; }
@@ -85,9 +86,11 @@ struct CoffObjLd
 	xarray<ObjRelocs> sect_relocs(int i) { return sect(i).relocs(*this); }
 	
 	// symbol helper functions
-	cstr symbName(int iSymb) { return symbols[iSymb].name(*this); }
-	u32 symbValue(int iSymb) { return symbols[iSymb].Value; }
-	u32 symbSect(int iSymb) { return symbols[iSymb].iSect(); }
+	ObjSymbol& symb(int i) { return symbols[i]; }
+	cstr symb_name(int i) { return symb(i).name(*this); }
+	u32 symb_value(int i) { return symb(i).Value; }
+	u32 symb_sect(int i) { return symb(i).iSect(); }
+	bool symb_hasSect(int i) { return symb(i).hasSect(); }
 
 	xarray<ObjSymbol> symbols;
 	xarray<Section> sections;
