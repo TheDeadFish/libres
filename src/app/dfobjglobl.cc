@@ -46,8 +46,10 @@ bool symbol_isRead(cch* name)
 void symbol_init(CoffObjLd& obj)
 {
 	FOR_FI(obj.symbols, symb, iSymb,
-		if(symb.isExtern()) { symbol_add(symb.name(obj),
-			obj.sect(symb.iSect()).isWr()); }
+		if(symb.isExtern() && symb.hasSect()) {
+			symbol_add(symb.name(obj),
+				obj.sect(symb.iSect()).isWr());
+		}
 		iSymb += symb.NumberOfAuxSymbols;
 	);
 }
