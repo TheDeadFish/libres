@@ -75,6 +75,9 @@ struct CoffObjLd
 			return {This.get(PointerToRawData), SizeOfRawData}; }
 		xarray<ObjRelocs> relocs(CoffObjLd& This) {
 			return {This.get(PointerToRelocations), NumberOfRelocations}; }
+
+		bool isWr() { return Characteristics & IMAGE_SCN_MEM_WRITE; }
+		bool isEx() { return Characteristics & IMAGE_SCN_MEM_EXECUTE; }
 	};
 	
 	// section helper functions

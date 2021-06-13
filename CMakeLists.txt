@@ -16,6 +16,7 @@ link_libraries(-lstdshit res)
 add_executable(libres src/app/libres.cc)
 add_executable(libmerge src/app/libmerge.cc)
 add_executable(dfobjdmp src/app/dfobjdmp.cc)
+add_executable(dfobjglobl src/app/dfobjglobl.cc)
 
 # libview
 link_libraries(-lwin32hlp)
